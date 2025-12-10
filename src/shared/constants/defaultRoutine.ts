@@ -1,0 +1,105 @@
+import { WeeklyRoutine } from '../../domain/entities/WeeklyRoutine';
+
+export const defaultRoutine: WeeklyRoutine = {
+  days: [
+    {
+      dayNumber: 1,
+      name: 'DÍA 1',
+      focus: 'PUSH (Pecho, Hombro, Tríceps)',
+      exercises: [
+        { name: 'Press banca barra', sets: 4, reps: '6–8' },
+        { name: 'Press inclinado mancuernas', sets: 4, reps: '8–10' },
+        { name: 'Press militar', sets: 3, reps: '6–8' },
+        { name: 'Aperturas en polea', sets: 3, reps: '12–15' },
+        { name: 'Fondos', sets: 3, reps: '8–12' },
+        { name: 'Tríceps cuerda', sets: 3, reps: '12–15' },
+        { name: 'Press inclinado ligero (finisher)', sets: 2, reps: '30 seg on / 30 seg off', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 2,
+      name: 'DÍA 2',
+      focus: 'PULL PESADO (Espalda, Bíceps)',
+      exercises: [
+        { name: 'Dominadas lastradas', sets: 4, reps: '6–8' },
+        { name: 'Remo con barra', sets: 4, reps: '6–8' },
+        { name: 'Jalón cerrado', sets: 3, reps: '10–12' },
+        { name: 'Remo en polea', sets: 3, reps: '12' },
+        { name: 'Face pulls', sets: 3, reps: '15–20' },
+        { name: 'Curl bíceps barra', sets: 3, reps: '8–10' },
+        { name: 'Curl martillo', sets: 3, reps: '12' },
+        { name: 'Pullover polea (finisher)', sets: 1, reps: '20', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 3,
+      name: 'DÍA 3',
+      focus: 'PIERNA (Cuádriceps dominante)',
+      exercises: [
+        { name: 'Sentadilla libre', sets: 4, reps: '6–8' },
+        { name: 'Prensa', sets: 4, reps: '12' },
+        { name: 'Extensiones cuádriceps', sets: 3, reps: '15' },
+        { name: 'Zancadas', sets: 3, reps: '12 c/pierna' },
+        { name: 'Gemelos de pie', sets: 4, reps: '15–20' },
+        { name: 'Sentadilla ligera (finisher)', sets: 1, reps: '1 min', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 4,
+      name: 'DÍA 4',
+      focus: 'HOMBRO + ABDOMEN',
+      exercises: [
+        { name: 'Press Arnold', sets: 3, reps: '8–10' },
+        { name: 'Elevaciones laterales estrictas', sets: 4, reps: '15' },
+        { name: 'Elevaciones laterales pesadas', sets: 3, reps: '10–12' },
+        { name: 'Pájaros en polea', sets: 3, reps: '15' },
+        { name: 'Crunch en polea', sets: 3, reps: '12–15' },
+        { name: 'Elevación de piernas', sets: 3, reps: '12–15' },
+        { name: 'Plancha', sets: 2, reps: '1 min' },
+        { name: 'Laterales 50 reps (finisher)', sets: 1, reps: '50 reps', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 5,
+      name: 'DÍA 5',
+      focus: 'PULL METABÓLICO (Espalda + Brazos)',
+      exercises: [
+        { name: 'Remo máquina pecho', sets: 4, reps: '10–12' },
+        { name: 'Jalón al pecho', sets: 3, reps: '12' },
+        { name: 'Remo unilateral mancuerna', sets: 3, reps: '12' },
+        { name: 'Curl bíceps polea', sets: 3, reps: '15' },
+        { name: 'Curl inclinado mancuernas', sets: 3, reps: '12' },
+        { name: 'Tríceps cuerda', sets: 3, reps: '12' },
+        { name: 'Tríceps francés', sets: 3, reps: '10' },
+        { name: 'Curls 21 (finisher)', sets: 1, reps: '21', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 6,
+      name: 'DÍA 6',
+      focus: 'PIERNA (Femoral + Glúteo)',
+      exercises: [
+        { name: 'Peso muerto rumano', sets: 4, reps: '6–8' },
+        { name: 'Hip thrust', sets: 4, reps: '10' },
+        { name: 'Curl femoral', sets: 3, reps: '12–15' },
+        { name: 'Sentadilla búlgara', sets: 3, reps: '10 c/pierna' },
+        { name: 'Gemelos sentado', sets: 4, reps: '15–20' },
+        { name: 'Puente glúteo (finisher)', sets: 1, reps: '60 seg', isFinisher: true },
+      ],
+    },
+    {
+      dayNumber: 7,
+      name: 'DÍA 7',
+      focus: 'FULL BODY METABÓLICO + CORE',
+      exercises: [
+        { name: 'Sentadilla goblet', sets: 3, reps: '12' },
+        { name: 'Press inclinado mancuernas', sets: 3, reps: '12' },
+        { name: 'Remo polea baja', sets: 3, reps: '12' },
+        { name: 'Elevaciones laterales', sets: 3, reps: '15' },
+        { name: 'Curl + tríceps (superserie)', sets: 2, reps: '15 c/u' },
+        { name: 'Circuito de abdomen', sets: 3, reps: 'Completo' },
+      ],
+    },
+  ],
+};
+
