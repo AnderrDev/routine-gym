@@ -87,7 +87,7 @@ export class WgerExerciseApiRepository implements ExerciseApiRepository {
       
       if (data.results && data.results.length > 0) {
         // Buscar el ejercicio más relevante (el primero suele ser el mejor match)
-        let exercise = data.results[0];
+        let exercise: ExerciseInfo | null = data.results[0];
         
         // Si no tiene imágenes, intentar obtener más detalles
         if (!exercise.images || exercise.images.length === 0) {

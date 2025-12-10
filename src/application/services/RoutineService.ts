@@ -1,6 +1,6 @@
 import { WeeklyRoutine } from '../../domain/entities/WeeklyRoutine';
 import { RoutineRepository } from '../../domain/ports/RoutineRepository';
-import { RoutineTracking, DayTracking, ExerciseTracking } from '../../domain/entities/ExerciseTracking';
+import { RoutineTracking, ExerciseTracking } from '../../domain/entities/ExerciseTracking';
 import { TrackingRepository } from '../../domain/ports/TrackingRepository';
 
 export class RoutineService {

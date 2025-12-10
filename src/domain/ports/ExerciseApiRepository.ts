@@ -1,4 +1,4 @@
-import { ExerciseInfo, ExerciseSearchResult } from '../entities/ExerciseInfo';
+import { ExerciseInfo } from '../entities/ExerciseInfo';
 
 export interface ExerciseApiRepository {
   searchExercise(exerciseName: string): Promise<ExerciseInfo | null>;
