@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Exercise } from '../../../domain/entities/Exercise';
 
 interface ExerciseCardProps {
@@ -13,6 +13,21 @@ interface ExerciseCardProps {
   onToggleSet?: (setIndex: number) => void;
 }
 
+// Calcular tiempo de recuperación basado en las reps
+const getRestTime = (reps: string): number => {
+  // Extraer números del string de reps (ej: "6-8" -> 6, "12-15" -> 12)
+  const match = reps.match(/\d+/);
+  const repCount = match ? parseInt(match[0]) : 10;
+  
+  if (repCount <= 8) {
+    return 90; // Ejercicios pesados: 90 segundos
+  } else if (repCount <= 12) {
+    return 60; // Ejercicios moderados: 60 segundos
+  } else {
+    return 45; // Ejercicios ligeros: 45 segundos
+  }
+};
+
 export const ExerciseCard = ({ 
   exercise, 
   index, 
@@ -26,6 +41,9 @@ export const ExerciseCard = ({
 }: ExerciseCardProps) => {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [weightInput, setWeightInput] = useState(weight?.toString() || '');
+  const [activeTimer, setActiveTimer] = useState<{ setIndex: number; timeLeft: number } | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previousCompletedSetsRef = useRef<boolean[]>([]);
 
   // Sincronizar el input con la prop weight cuando cambia
   useEffect(() => {
@@ -33,6 +51,65 @@ export const ExerciseCard = ({
       setWeightInput(weight?.toString() || '');
     }
   }, [weight, isEditingWeight]);
+
+  // Detectar cuando se completa una serie y activar timer
+  useEffect(() => {
+    if (!completedSets || exercise.isFinisher) return;
+
+    // Encontrar qué serie se acaba de completar
+    const previous = previousCompletedSetsRef.current;
+    const current = completedSets;
+
+    for (let i = 0; i < current.length; i++) {
+      // Si una serie que antes no estaba completada ahora lo está
+      if (!previous[i] && current[i]) {
+        // Solo activar timer si no es la última serie
+        const totalSets = exercise.sets;
+        if (i < totalSets - 1) {
+          const restTime = getRestTime(exercise.reps);
+          setActiveTimer({ setIndex: i, timeLeft: restTime });
+        }
+        break;
+      }
+    }
+
+    previousCompletedSetsRef.current = [...current];
+  }, [completedSets, exercise.reps, exercise.sets, exercise.isFinisher]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (activeTimer && activeTimer.timeLeft > 0) {
+      timerIntervalRef.current = setInterval(() => {
+        setActiveTimer(prev => {
+          if (!prev) return null;
+          if (prev.timeLeft <= 1) {
+            return null; // Timer completado
+          }
+          return { ...prev, timeLeft: prev.timeLeft - 1 };
+        });
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+    };
+  }, [activeTimer]);
+
+  const handleSkipTimer = () => {
+    setActiveTimer(null);
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  };
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     // Evitar que el doble click se propague si se hace sobre el botón o input
@@ -181,6 +258,52 @@ export const ExerciseCard = ({
                   );
                 })}
               </div>
+              {/* Timer de recuperación */}
+              {activeTimer !== null && (
+                <div className="mt-3 p-3 bg-gym-accent/10 border border-gym-accent/30 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gym-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-xs font-medium text-gym-text">
+                        Recuperación serie {activeTimer.setIndex + 1}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleSkipTimer();
+                      }}
+                      className="text-xs text-gym-accent hover:text-gym-accent-secondary transition-colors font-medium"
+                    >
+                      Saltar
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 bg-gym-dark rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-gym-accent to-gym-accent-secondary transition-all duration-1000"
+                        style={{
+                          width: `${((getRestTime(exercise.reps) - activeTimer.timeLeft) / getRestTime(exercise.reps)) * 100}%`
+                        }}
+                      />
+                    </div>
+                    <span className="text-lg font-bold text-gym-accent min-w-[40px] text-right">
+                      {activeTimer.timeLeft}s
+                    </span>
+                  </div>
+                  {activeTimer.timeLeft === 0 && (
+                    <div className="mt-2 text-center">
+                      <span className="text-xs font-semibold text-gym-accent animate-pulse">
+                        ¡Listo para la siguiente serie!
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {onShowInfo && (
