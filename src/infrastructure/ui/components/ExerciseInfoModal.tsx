@@ -145,10 +145,39 @@ export const ExerciseInfoModal = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <p className="text-gym-text-secondary mb-2">No se encontró información para este ejercicio</p>
-              <p className="text-xs text-gym-text-secondary">
-                Intenta buscar "{exerciseName}" en internet para ver cómo se realiza
+              <p className="text-gym-text-secondary mb-2 font-medium">No se encontró información para este ejercicio</p>
+              <p className="text-xs text-gym-text-secondary mb-4">
+                No hay información disponible sobre "{exerciseName}" en este momento.
               </p>
+              <div className="bg-gym-dark border border-gym-border rounded-lg p-4 text-left space-y-3">
+                <p className="text-xs text-gym-text-secondary">
+                  <strong className="text-gym-text">Sugerencia:</strong> Busca este ejercicio en internet para ver videos e instrucciones.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exerciseName + ' ejercicio gimnasio')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-gym-accent hover:bg-gym-accent/90 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    <span>Buscar en YouTube</span>
+                  </a>
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(exerciseName + ' como hacer ejercicio')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-gym-card border border-gym-border hover:border-gym-accent text-gym-text rounded-lg text-sm font-medium transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <span>Buscar en Google</span>
+                  </a>
+                </div>
+              </div>
             </div>
           )}
         </div>
