@@ -26,7 +26,7 @@ export const WeeklyView = ({ routine, tracking, onDayClick, routineService }: We
       
       <div className="grid grid-cols-1 gap-3 sm:gap-4">
         {routine.days.map((day) => {
-          const progress = routineService.getDayProgress(tracking, day.dayNumber, day.exercises.length);
+          const progress = routineService.getDayProgress(routine, tracking, day.dayNumber);
           return (
             <DayCard
               key={day.dayNumber}

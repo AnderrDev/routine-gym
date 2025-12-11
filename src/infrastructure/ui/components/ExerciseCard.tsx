@@ -137,8 +137,8 @@ export const ExerciseCard = ({
               </span>
             )}
           </div>
-          {/* Series tracking */}
-          {onToggleSet && exercise.sets > 0 && (
+          {/* Series tracking - Omitir para finishers */}
+          {onToggleSet && exercise.sets > 0 && !exercise.isFinisher && (
             <div className="mt-3 pt-3 border-t border-gym-border">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-gym-text-secondary">Series:</span>

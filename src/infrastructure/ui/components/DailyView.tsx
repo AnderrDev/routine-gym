@@ -33,7 +33,8 @@ export const DailyView = ({
   const previousDay = currentIndex > 0 ? routine.days[currentIndex - 1] : null;
   const nextDay = currentIndex < routine.days.length - 1 ? routine.days[currentIndex + 1] : null;
   
-  const progress = routineService.getDayProgress(tracking, day.dayNumber, day.exercises.length);
+  const progress = routineService.getDayProgress(routine, tracking, day.dayNumber);
+  const isFullyCompleted = routineService.isDayFullyCompleted(routine, tracking, day.dayNumber);
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 sm:px-4 pb-6 pt-4">
@@ -49,12 +50,19 @@ export const DailyView = ({
           <span>Volver a vista semanal</span>
         </button>
         
-        <div className="bg-gradient-to-r from-gym-accent/20 to-gym-accent-secondary/20 border border-gym-accent rounded-lg p-3 sm:p-4 mb-4">
+        <div className={`bg-gradient-to-r from-gym-accent/20 to-gym-accent-secondary/20 border rounded-lg p-3 sm:p-4 mb-4 transition-all duration-500 ${isFullyCompleted ? 'border-gym-accent shadow-lg shadow-gym-accent/30' : 'border-gym-accent'}`}>
           <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gym-accent mb-1">
-                {day.name}
-              </h1>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-gym-accent">
+                  {day.name}
+                </h1>
+                {isFullyCompleted && (
+                  <div className="px-2 py-1 bg-gym-accent rounded-full">
+                    <span className="text-xs font-bold text-white">¡COMPLETADO!</span>
+                  </div>
+                )}
+              </div>
               <p className="text-gym-text-secondary text-xs sm:text-sm">
                 {day.focus}
               </p>
@@ -73,9 +81,16 @@ export const DailyView = ({
           {progress.total > 0 && (
             <div className="w-full bg-gym-accent/20 rounded-full h-2 overflow-hidden mt-2">
               <div
-                className="h-full bg-gym-accent transition-all duration-500"
+                className={`h-full transition-all duration-500 ${isFullyCompleted ? 'bg-gradient-to-r from-gym-accent to-gym-accent-secondary' : 'bg-gym-accent'}`}
                 style={{ width: `${progress.percentage}%` }}
               />
+            </div>
+          )}
+          {isFullyCompleted && (
+            <div className="mt-3 pt-3 border-t border-gym-accent/30">
+              <div className="flex items-center justify-center text-sm text-gym-accent font-semibold">
+                <span>¡Día completado al 100% con finisher!</span>
+              </div>
             </div>
           )}
         </div>

@@ -79,8 +79,10 @@ export class RoutineService {
       const currentCompleted = dayTracking.exercises[existingIndex].completed;
       const newCompleted = !currentCompleted;
       
-      // Crear array de series: todas completadas si se marca, todas incompletas si se desmarca
-      const completedSets = new Array(totalSets).fill(newCompleted);
+      // Para finishers, no crear tracking de series
+      const completedSets = exercise.isFinisher 
+        ? undefined 
+        : new Array(totalSets).fill(newCompleted);
       
       exerciseTracking = {
         ...dayTracking.exercises[existingIndex],
@@ -93,8 +95,11 @@ export class RoutineService {
       
       dayTracking.exercises[existingIndex] = exerciseTracking;
     } else {
-      // Si no existe, crear nuevo con estado completado y todas las series marcadas
-      const completedSets = new Array(totalSets).fill(true);
+      // Si no existe, crear nuevo con estado completado
+      // Para finishers, no crear tracking de series
+      const completedSets = exercise.isFinisher 
+        ? undefined 
+        : new Array(totalSets).fill(true);
       exerciseTracking = {
         dayNumber,
         exerciseIndex,
@@ -136,11 +141,24 @@ export class RoutineService {
   }
 
   getDayProgress(
+    routine: WeeklyRoutine,
     tracking: RoutineTracking | null,
-    dayNumber: number,
-    totalExercises: number
+    dayNumber: number
   ): { completed: number; total: number; percentage: number } {
-    if (!tracking || totalExercises === 0) {
+    const day = this.getDayByNumber(routine, dayNumber);
+    if (!day) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+
+    // Excluir finishers del cálculo de progreso
+    const nonFinisherExercises = day.exercises.filter(ex => !ex.isFinisher);
+    const totalExercises = nonFinisherExercises.length;
+
+    if (totalExercises === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+
+    if (!tracking) {
       return { completed: 0, total: totalExercises, percentage: 0 };
     }
 
@@ -149,10 +167,43 @@ export class RoutineService {
       return { completed: 0, total: totalExercises, percentage: 0 };
     }
 
-    const completed = dayTracking.exercises.filter(e => e.completed).length;
+    // Contar solo ejercicios no finisher completados
+    const completed = nonFinisherExercises.filter((exercise) => {
+      const exerciseIndex = day.exercises.findIndex(ex => ex === exercise);
+      if (exerciseIndex === -1) return false;
+      const exerciseTracking = dayTracking.exercises.find(
+        e => e.exerciseIndex === exerciseIndex
+      );
+      return exerciseTracking?.completed || false;
+    }).length;
+
     const percentage = Math.round((completed / totalExercises) * 100);
 
     return { completed, total: totalExercises, percentage };
+  }
+
+  isDayFullyCompleted(
+    routine: WeeklyRoutine,
+    tracking: RoutineTracking | null,
+    dayNumber: number
+  ): boolean {
+    const day = this.getDayByNumber(routine, dayNumber);
+    if (!day || !tracking) {
+      return false;
+    }
+
+    const dayTracking = tracking.days.find(d => d.dayNumber === dayNumber);
+    if (!dayTracking) {
+      return false;
+    }
+
+    // Verificar que TODOS los ejercicios estén completados (incluyendo finishers)
+    return day.exercises.every((exercise, exerciseIndex) => {
+      const exerciseTracking = dayTracking.exercises.find(
+        e => e.exerciseIndex === exerciseIndex
+      );
+      return exerciseTracking?.completed || false;
+    });
   }
 
   getExerciseWeight(
