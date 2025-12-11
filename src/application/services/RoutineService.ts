@@ -198,7 +198,7 @@ export class RoutineService {
     }
 
     // Verificar que TODOS los ejercicios estén completados (incluyendo finishers)
-    return day.exercises.every((exercise, exerciseIndex) => {
+    return day.exercises.every((_, exerciseIndex) => {
       const exerciseTracking = dayTracking.exercises.find(
         e => e.exerciseIndex === exerciseIndex
       );

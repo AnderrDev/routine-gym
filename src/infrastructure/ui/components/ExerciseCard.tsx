@@ -42,7 +42,7 @@ export const ExerciseCard = ({
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [weightInput, setWeightInput] = useState(weight?.toString() || '');
   const [activeTimer, setActiveTimer] = useState<{ setIndex: number; timeLeft: number } | null>(null);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const previousCompletedSetsRef = useRef<boolean[]>([]);
 
   // Sincronizar el input con la prop weight cuando cambia
