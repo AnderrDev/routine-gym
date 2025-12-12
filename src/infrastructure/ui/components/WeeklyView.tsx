@@ -19,9 +19,6 @@ export const WeeklyView = ({ routine, tracking, onDayClick, routineService }: We
         <h1 className="text-2xl sm:text-3xl font-bold text-gym-text mb-1 sm:mb-2">
           Rutina Semanal
         </h1>
-        <p className="text-gym-text-secondary text-xs sm:text-sm">
-          DEFINICIÓN + MASA
-        </p>
       </div>
       
       <div className="grid grid-cols-1 gap-3 sm:gap-4">

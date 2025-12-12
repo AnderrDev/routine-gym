@@ -250,19 +250,52 @@ export class RoutineService {
       e => e.exerciseIndex === exerciseIndex
     );
 
+    const now = new Date().toISOString();
+
     if (existingIndex >= 0) {
-      // Si existe, actualizar el peso
-      dayTracking.exercises[existingIndex] = {
-        ...dayTracking.exercises[existingIndex],
-        weight: weight,
-      };
+      const existingExercise = dayTracking.exercises[existingIndex];
+      const previousWeight = existingExercise.weight;
+      
+      // Si el peso cambió y es un número válido, agregar al historial
+      if (weight !== undefined && weight !== null && weight !== previousWeight) {
+        const weightHistory = existingExercise.weightHistory || [];
+        
+        // Solo agregar si el peso realmente cambió
+        if (previousWeight !== weight) {
+          weightHistory.push({
+            weight: weight,
+            date: now,
+            dayNumber: dayNumber,
+          });
+        }
+        
+        // Actualizar el ejercicio con el nuevo peso e historial
+        dayTracking.exercises[existingIndex] = {
+          ...existingExercise,
+          weight: weight,
+          weightHistory: weightHistory,
+        };
+      } else if (weight !== undefined) {
+        // Si el peso no cambió pero se está actualizando, mantener el historial
+        dayTracking.exercises[existingIndex] = {
+          ...existingExercise,
+          weight: weight,
+        };
+      }
     } else {
-      // Si no existe, crear nuevo con el peso
+      // Si no existe, crear nuevo con el peso e historial inicial
+      const weightHistory = weight !== undefined && weight !== null ? [{
+        weight: weight,
+        date: now,
+        dayNumber: dayNumber,
+      }] : [];
+      
       dayTracking.exercises.push({
         dayNumber,
         exerciseIndex,
         completed: false,
         weight: weight,
+        weightHistory: weightHistory,
       });
     }
 

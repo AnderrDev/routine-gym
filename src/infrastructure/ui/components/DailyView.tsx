@@ -14,6 +14,7 @@ interface DailyViewProps {
   onToggleExercise: (dayNumber: number, exerciseIndex: number) => void;
   onWeightChange: (dayNumber: number, exerciseIndex: number, weight: number | undefined) => void;
   onShowExerciseInfo: (exerciseName: string) => void;
+  onShowExerciseStats: (exerciseName: string) => void;
   onToggleSet: (dayNumber: number, exerciseIndex: number, setIndex: number) => void;
 }
 
@@ -27,6 +28,7 @@ export const DailyView = ({
   onToggleExercise,
   onWeightChange,
   onShowExerciseInfo,
+  onShowExerciseStats,
   onToggleSet
 }: DailyViewProps) => {
   const currentIndex = routine.days.findIndex(d => d.dayNumber === day.dayNumber);
@@ -118,6 +120,9 @@ export const DailyView = ({
               }}
               onShowInfo={() => {
                 onShowExerciseInfo(exercise.name);
+              }}
+              onShowStats={() => {
+                onShowExerciseStats(exercise.name);
               }}
               onToggleSet={(setIndex) => {
                 onToggleSet(day.dayNumber, index, setIndex);

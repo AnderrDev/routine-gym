@@ -10,6 +10,7 @@ interface ExerciseCardProps {
   onToggleComplete?: () => void;
   onWeightChange?: (weight: number | undefined) => void;
   onShowInfo?: () => void;
+  onShowStats?: () => void;
   onToggleSet?: (setIndex: number) => void;
 }
 
@@ -89,6 +90,7 @@ export const ExerciseCard = ({
   onToggleComplete,
   onWeightChange,
   onShowInfo,
+  onShowStats,
   onToggleSet
 }: ExerciseCardProps) => {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
@@ -115,12 +117,28 @@ export const ExerciseCard = ({
 
   // Detectar cuando se completa una serie y activar timer
   useEffect(() => {
-    if (!completedSets || exercise.isFinisher) return;
+    if (!completedSets || exercise.isFinisher) {
+      previousCompletedSetsRef.current = completedSets ? [...completedSets] : [];
+      return;
+    }
 
     // Encontrar qué serie se acaba de completar
     const previous = previousCompletedSetsRef.current;
     const current = completedSets;
 
+    // Si es la primera vez que se carga (previous está vacío), solo inicializar sin activar timers
+    if (previous.length === 0) {
+      previousCompletedSetsRef.current = [...current];
+      return;
+    }
+
+    // Solo procesar si los arrays tienen la misma longitud
+    if (previous.length !== current.length) {
+      previousCompletedSetsRef.current = [...current];
+      return;
+    }
+
+    // Buscar cambios: solo activar timer si una serie cambió de false a true
     for (let i = 0; i < current.length; i++) {
       // Si una serie que antes no estaba completada ahora lo está
       if (!previous[i] && current[i]) {
@@ -133,7 +151,7 @@ export const ExerciseCard = ({
           timerDurationRef.current = restTime;
           setActiveTimer({ setIndex: i, timeLeft: restTime });
         }
-        break;
+        break; // Solo activar un timer a la vez
       }
     }
 
@@ -229,9 +247,23 @@ export const ExerciseCard = ({
 
   const handleWeightBlur = () => {
     setIsEditingWeight(false);
-    const numWeight = weightInput.trim() === '' ? undefined : parseFloat(weightInput);
-    if (onWeightChange) {
-      onWeightChange(numWeight && !isNaN(numWeight) ? numWeight : undefined);
+    const trimmed = weightInput.trim();
+    if (trimmed === '') {
+      if (onWeightChange) {
+        onWeightChange(undefined);
+      }
+      return;
+    }
+    
+    const numWeight = parseFloat(trimmed);
+    // Validar que sea un número válido y positivo
+    if (!isNaN(numWeight) && numWeight >= 0 && isFinite(numWeight)) {
+      if (onWeightChange) {
+        onWeightChange(numWeight);
+      }
+    } else {
+      // Si no es válido, restaurar el valor anterior
+      setWeightInput(weight?.toString() || '');
     }
   };
 
@@ -301,16 +333,16 @@ export const ExerciseCard = ({
                     onBlur={handleWeightBlur}
                     onKeyDown={handleWeightKeyDown}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-16 px-2 py-1 bg-gym-dark border border-gym-accent rounded text-gym-text text-xs focus:outline-none focus:ring-2 focus:ring-gym-accent"
+                    className="w-20 px-2 py-1 bg-gym-dark border border-gym-accent rounded text-gym-text text-xs focus:outline-none focus:ring-2 focus:ring-gym-accent"
                     placeholder="kg"
                     autoFocus
                     min="0"
-                    step="0.5"
+                    step="0.1"
                   />
                 ) : (
                   <>
                     <span className="font-medium text-gym-text">
-                      {weight ? `${weight} kg` : 'Peso'}
+                      {weight !== undefined && weight !== null ? `${weight.toFixed(1)} kg` : 'Peso'}
                     </span>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -412,22 +444,40 @@ export const ExerciseCard = ({
               )}
             </div>
           )}
-          {onShowInfo && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onShowInfo();
-              }}
-              className="mt-2 flex items-center gap-1.5 text-xs text-gym-accent hover:text-gym-accent-secondary transition-colors touch-manipulation"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>Ver cómo hacerlo</span>
-            </button>
-          )}
+          <div className="mt-2 flex items-center gap-3 flex-wrap">
+            {onShowInfo && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onShowInfo();
+                }}
+                className="flex items-center gap-1.5 text-xs text-gym-accent hover:text-gym-accent-secondary transition-colors touch-manipulation"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Ver cómo hacerlo</span>
+              </button>
+            )}
+            {onShowStats && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onShowStats();
+                }}
+                className="flex items-center gap-1.5 text-xs text-gym-accent hover:text-gym-accent-secondary transition-colors touch-manipulation"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Ver estadísticas</span>
+              </button>
+            )}
+          </div>
         </div>
         {onToggleComplete && (
           <button

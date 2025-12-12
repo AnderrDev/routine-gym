@@ -4,6 +4,7 @@ import { RoutineTracking } from '../../../domain/entities/ExerciseTracking';
 import { ExerciseInfo } from '../../../domain/entities/ExerciseInfo';
 import { RoutineService } from '../../../application/services/RoutineService';
 import { ExerciseInfoService } from '../../../application/services/ExerciseInfoService';
+import { WeightStatsService } from '../../../application/services/WeightStatsService';
 import { LocalStorageRoutineRepository } from '../../persistence/LocalStorageRoutineRepository';
 import { LocalStorageTrackingRepository } from '../../persistence/LocalStorageTrackingRepository';
 import { WgerExerciseApiRepository } from '../../api/WgerExerciseApiRepository';
@@ -11,6 +12,10 @@ import { defaultRoutine } from '../../../shared/constants/defaultRoutine';
 import { WeeklyView } from '../components/WeeklyView';
 import { DailyView } from '../components/DailyView';
 import { ExerciseInfoModal } from '../components/ExerciseInfoModal';
+import { WeightStatsView } from '../components/WeightStatsView';
+import { ExerciseWeightStatsModal } from '../components/ExerciseWeightStatsModal';
+import type { PeriodStats } from '../../../application/services/WeightStatsService';
+import type { ExerciseWeightStats } from '../../../application/services/WeightStatsService';
 
 type View = 'weekly' | 'daily';
 
@@ -23,12 +28,19 @@ export const HomePage = () => {
   const [selectedExerciseName, setSelectedExerciseName] = useState<string>('');
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [statsPeriod, setStatsPeriod] = useState<'day' | 'week' | 'month'>('week');
+  const [currentStats, setCurrentStats] = useState<PeriodStats | null>(null);
+  const [isExerciseStatsModalOpen, setIsExerciseStatsModalOpen] = useState(false);
+  const [selectedExerciseForStats, setSelectedExerciseForStats] = useState<string>('');
+  const [exerciseStats, setExerciseStats] = useState<ExerciseWeightStats | null>(null);
   
   const repository = new LocalStorageRoutineRepository();
   const trackingRepository = new LocalStorageTrackingRepository();
   const routineService = new RoutineService(repository, trackingRepository);
   const exerciseApiRepository = new WgerExerciseApiRepository();
   const exerciseInfoService = new ExerciseInfoService(exerciseApiRepository);
+  const weightStatsService = new WeightStatsService();
 
   useEffect(() => {
     const loadData = async () => {
@@ -138,6 +150,47 @@ export const HomePage = () => {
     }
   };
 
+  const handleOpenStats = (period: 'day' | 'week' | 'month') => {
+    setStatsPeriod(period);
+    const stats = weightStatsService.getPeriodStats(routine, tracking, period);
+    setCurrentStats(stats);
+    setIsStatsModalOpen(true);
+  };
+
+  const handleCloseStats = () => {
+    setIsStatsModalOpen(false);
+    setCurrentStats(null);
+  };
+
+  const handleShowExerciseStats = async (exerciseName: string) => {
+    setSelectedExerciseForStats(exerciseName);
+    setIsExerciseStatsModalOpen(true);
+    const stats = weightStatsService.getExerciseStats(routine, tracking, exerciseName);
+    setExerciseStats(stats);
+  };
+
+  const handleCloseExerciseStats = () => {
+    setIsExerciseStatsModalOpen(false);
+    setSelectedExerciseForStats('');
+    setExerciseStats(null);
+  };
+
+  // Actualizar estadísticas cuando cambia el tracking o el período
+  useEffect(() => {
+    if (isStatsModalOpen && tracking) {
+      const stats = weightStatsService.getPeriodStats(routine, tracking, statsPeriod);
+      setCurrentStats(stats);
+    }
+  }, [tracking, statsPeriod, isStatsModalOpen, routine]);
+
+  // Actualizar estadísticas del ejercicio cuando cambia el tracking
+  useEffect(() => {
+    if (isExerciseStatsModalOpen && tracking && selectedExerciseForStats) {
+      const stats = weightStatsService.getExerciseStats(routine, tracking, selectedExerciseForStats);
+      setExerciseStats(stats);
+    }
+  }, [tracking, isExerciseStatsModalOpen, selectedExerciseForStats, routine]);
+
   const selectedDay = selectedDayNumber
     ? routineService.getDayByNumber(routine, selectedDayNumber)
     : null;
@@ -162,6 +215,7 @@ export const HomePage = () => {
           onToggleExercise={handleToggleExercise}
           onWeightChange={handleWeightChange}
           onShowExerciseInfo={handleShowExerciseInfo}
+          onShowExerciseStats={handleShowExerciseStats}
           onToggleSet={handleToggleSet}
         />
       ) : null}
@@ -173,6 +227,22 @@ export const HomePage = () => {
         isLoading={isLoadingInfo}
         onClose={handleCloseInfoModal}
       />
+
+      {isStatsModalOpen && currentStats && (
+        <WeightStatsView
+          stats={currentStats}
+          onClose={handleCloseStats}
+        />
+      )}
+
+      {isExerciseStatsModalOpen && (
+        <ExerciseWeightStatsModal
+          exerciseName={selectedExerciseForStats}
+          stats={exerciseStats}
+          isOpen={isExerciseStatsModalOpen}
+          onClose={handleCloseExerciseStats}
+        />
+      )}
     </div>
   );
 };
