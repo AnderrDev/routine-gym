@@ -29,7 +29,6 @@ export const HomePage = () => {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
-  const [statsPeriod, setStatsPeriod] = useState<'day' | 'week' | 'month'>('week');
   const [currentStats, setCurrentStats] = useState<PeriodStats | null>(null);
   const [isExerciseStatsModalOpen, setIsExerciseStatsModalOpen] = useState(false);
   const [selectedExerciseForStats, setSelectedExerciseForStats] = useState<string>('');
@@ -168,13 +167,13 @@ export const HomePage = () => {
     setExerciseStats(null);
   };
 
-  // Actualizar estadísticas cuando cambia el tracking o el período
+  // Actualizar estadísticas cuando cambia el tracking
   useEffect(() => {
-    if (isStatsModalOpen && tracking) {
-      const stats = weightStatsService.getPeriodStats(routine, tracking, statsPeriod);
+    if (isStatsModalOpen && tracking && currentStats) {
+      const stats = weightStatsService.getPeriodStats(routine, tracking, currentStats.period);
       setCurrentStats(stats);
     }
-  }, [tracking, statsPeriod, isStatsModalOpen, routine]);
+  }, [tracking, isStatsModalOpen, routine, currentStats]);
 
   // Actualizar estadísticas del ejercicio cuando cambia el tracking
   useEffect(() => {

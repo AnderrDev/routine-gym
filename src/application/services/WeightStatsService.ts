@@ -169,7 +169,10 @@ export class WeightStatsService {
   ): ExerciseWeightStats | null {
     if (!tracking) return null;
 
-    let foundStats: ExerciseWeightStats | null = null;
+    const allEntries: WeightHistoryEntry[] = [];
+    let exerciseNameFound = '';
+    let exerciseIndexFound = 0;
+    let dayNumberFound = 0;
 
     routine.days.forEach(day => {
       day.exercises.forEach((exercise, exerciseIndex) => {
@@ -182,19 +185,15 @@ export class WeightStatsService {
 
         if (!exerciseTracking) return;
 
-        if (!foundStats) {
-          foundStats = {
-            exerciseName: exercise.name,
-            exerciseIndex,
-            dayNumber: day.dayNumber,
-            entries: [],
-            trend: 'none',
-          };
+        if (!exerciseNameFound) {
+          exerciseNameFound = exercise.name;
+          exerciseIndexFound = exerciseIndex;
+          dayNumberFound = day.dayNumber;
         }
 
         // Agregar historial
         if (exerciseTracking.weightHistory) {
-          foundStats.entries.push(...exerciseTracking.weightHistory);
+          allEntries.push(...exerciseTracking.weightHistory);
         }
 
         // Agregar peso actual si existe
@@ -203,7 +202,7 @@ export class WeightStatsService {
             ? new Date(exerciseTracking.completedAt)
             : new Date();
           
-          foundStats.entries.push({
+          allEntries.push({
             weight: exerciseTracking.weight,
             date: weightDate.toISOString(),
             dayNumber: day.dayNumber,
@@ -212,10 +211,19 @@ export class WeightStatsService {
       });
     });
 
-    if (!foundStats || foundStats.entries.length === 0) return null;
+    // Verificar que hay entradas
+    if (allEntries.length === 0 || !exerciseNameFound) {
+      return null;
+    }
 
-    // TypeScript ahora sabe que foundStats no es null aquí
-    const stats = foundStats;
+    // Crear el objeto de estadísticas
+    const stats: ExerciseWeightStats = {
+      exerciseName: exerciseNameFound,
+      exerciseIndex: exerciseIndexFound,
+      dayNumber: dayNumberFound,
+      entries: allEntries,
+      trend: 'none',
+    };
 
     // Ordenar y calcular estadísticas
     stats.entries.sort((a: WeightHistoryEntry, b: WeightHistoryEntry) => 
