@@ -28,6 +28,58 @@ const getRestTime = (reps: string): number => {
   }
 };
 
+// Función para notificar cuando el timer termine
+const notifyTimerComplete = (exerciseName: string, setIndex: number) => {
+  // Vibración (si está disponible en dispositivos móviles)
+  if ('vibrate' in navigator) {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  }
+
+  // Sonido usando Web Audio API
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (error) {
+    // Si falla el audio, no hacer nada
+    console.log('Audio no disponible');
+  }
+
+  // Notificación del navegador
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('¡Descanso completado!', {
+      body: `${exerciseName} - Serie ${setIndex + 1}`,
+      icon: '/favicon.ico',
+      tag: 'rest-timer',
+      requireInteraction: false,
+    });
+  } else if ('Notification' in window && Notification.permission === 'default') {
+    // Solicitar permiso si aún no se ha hecho
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification('¡Descanso completado!', {
+          body: `${exerciseName} - Serie ${setIndex + 1}`,
+          icon: '/favicon.ico',
+          tag: 'rest-timer',
+          requireInteraction: false,
+        });
+      }
+    });
+  }
+};
+
 export const ExerciseCard = ({ 
   exercise, 
   index, 
@@ -43,7 +95,16 @@ export const ExerciseCard = ({
   const [weightInput, setWeightInput] = useState(weight?.toString() || '');
   const [activeTimer, setActiveTimer] = useState<{ setIndex: number; timeLeft: number } | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const timerStartTimeRef = useRef<number | null>(null);
+  const timerDurationRef = useRef<number | null>(null);
   const previousCompletedSetsRef = useRef<boolean[]>([]);
+
+  // Solicitar permisos de notificación al montar
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
 
   // Sincronizar el input con la prop weight cuando cambia
   useEffect(() => {
@@ -67,6 +128,9 @@ export const ExerciseCard = ({
         const totalSets = exercise.sets;
         if (i < totalSets - 1) {
           const restTime = getRestTime(exercise.reps);
+          const startTime = Date.now();
+          timerStartTimeRef.current = startTime;
+          timerDurationRef.current = restTime;
           setActiveTimer({ setIndex: i, timeLeft: restTime });
         }
         break;
@@ -76,18 +140,58 @@ export const ExerciseCard = ({
     previousCompletedSetsRef.current = [...current];
   }, [completedSets, exercise.reps, exercise.sets, exercise.isFinisher]);
 
-  // Timer countdown
+  // Timer countdown - usa timestamps para funcionar en background
   useEffect(() => {
-    if (activeTimer && activeTimer.timeLeft > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        setActiveTimer(prev => {
-          if (!prev) return null;
-          if (prev.timeLeft <= 1) {
-            return null; // Timer completado
-          }
-          return { ...prev, timeLeft: prev.timeLeft - 1 };
-        });
-      }, 1000);
+    if (activeTimer && timerStartTimeRef.current !== null && timerDurationRef.current !== null) {
+      const updateTimer = () => {
+        if (timerStartTimeRef.current === null || timerDurationRef.current === null) {
+          return;
+        }
+        
+        const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
+        const timeLeft = Math.max(0, timerDurationRef.current - elapsed);
+        
+        if (timeLeft <= 0) {
+          // Guardar el setIndex antes de limpiar
+          setActiveTimer(prev => {
+            if (prev) {
+              // Notificar que el timer terminó
+              notifyTimerComplete(exercise.name, prev.setIndex);
+            }
+            return null;
+          });
+          timerStartTimeRef.current = null;
+          timerDurationRef.current = null;
+        } else {
+          setActiveTimer(prev => {
+            if (!prev) return null;
+            return { ...prev, timeLeft };
+          });
+        }
+      };
+
+      // Actualizar inmediatamente
+      updateTimer();
+
+      // Actualizar cada segundo para la UI
+      timerIntervalRef.current = setInterval(updateTimer, 1000);
+
+      // Actualizar cuando la página vuelve a primer plano
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          updateTimer();
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        if (timerIntervalRef.current) {
+          clearInterval(timerIntervalRef.current);
+          timerIntervalRef.current = null;
+        }
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     } else {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
@@ -105,6 +209,8 @@ export const ExerciseCard = ({
 
   const handleSkipTimer = () => {
     setActiveTimer(null);
+    timerStartTimeRef.current = null;
+    timerDurationRef.current = null;
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
