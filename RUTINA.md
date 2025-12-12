@@ -194,3 +194,4 @@ Esta rutina está integrada en la aplicación **Gym Routine App**, donde puedes:
 
 **¡Entrena duro y mantén la constancia! 💪**
 
+

@@ -7,7 +7,6 @@ interface WeightStatsViewProps {
 }
 
 export const WeightStatsView = ({ stats, onClose }: WeightStatsViewProps) => {
-  const [selectedExercise, setSelectedExercise] = useState<ExerciseWeightStats | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'chart'>('list');
 
   const exercisesWithData = stats.exercises.filter(e => e.entries.length > 0);
@@ -175,7 +174,7 @@ export const WeightStatsView = ({ stats, onClose }: WeightStatsViewProps) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {exercisesWithData.map((exercise, index) => (
+              {exercisesWithData.map((exercise) => (
                 <div
                   key={`${exercise.dayNumber}-${exercise.exerciseIndex}`}
                   className="bg-gym-card border border-gym-border rounded-lg p-4 hover:border-gym-accent/50 transition-colors"
@@ -266,3 +265,4 @@ export const WeightStatsView = ({ stats, onClose }: WeightStatsViewProps) => {
     </div>
   );
 };
+

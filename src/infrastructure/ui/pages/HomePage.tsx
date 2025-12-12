@@ -150,13 +150,6 @@ export const HomePage = () => {
     }
   };
 
-  const handleOpenStats = (period: 'day' | 'week' | 'month') => {
-    setStatsPeriod(period);
-    const stats = weightStatsService.getPeriodStats(routine, tracking, period);
-    setCurrentStats(stats);
-    setIsStatsModalOpen(true);
-  };
-
   const handleCloseStats = () => {
     setIsStatsModalOpen(false);
     setCurrentStats(null);

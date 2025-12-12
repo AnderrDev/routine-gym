@@ -36,7 +36,6 @@ export class WeightStatsService {
   ): PeriodStats {
     const { startDate, endDate } = this.getPeriodDates(period, referenceDate);
     
-    const exercises: ExerciseWeightStats[] = [];
     const exerciseMap = new Map<string, ExerciseWeightStats>();
 
     if (!tracking) {
@@ -215,37 +214,40 @@ export class WeightStatsService {
 
     if (!foundStats || foundStats.entries.length === 0) return null;
 
+    // TypeScript ahora sabe que foundStats no es null aquí
+    const stats = foundStats;
+
     // Ordenar y calcular estadísticas
-    foundStats.entries.sort((a, b) => 
+    stats.entries.sort((a: WeightHistoryEntry, b: WeightHistoryEntry) => 
       new Date(a.date).getTime() - new Date(b.date).getTime()
     );
 
-    const weights = foundStats.entries.map(e => e.weight);
-    foundStats.averageWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
-    foundStats.maxWeight = Math.max(...weights);
-    foundStats.minWeight = Math.min(...weights);
-    foundStats.currentWeight = foundStats.entries[foundStats.entries.length - 1]?.weight;
-    foundStats.firstRecordedDate = foundStats.entries[0]?.date;
-    foundStats.lastRecordedDate = foundStats.entries[foundStats.entries.length - 1]?.date;
+    const weights = stats.entries.map((e: WeightHistoryEntry) => e.weight);
+    stats.averageWeight = weights.reduce((a: number, b: number) => a + b, 0) / weights.length;
+    stats.maxWeight = Math.max(...weights);
+    stats.minWeight = Math.min(...weights);
+    stats.currentWeight = stats.entries[stats.entries.length - 1]?.weight;
+    stats.firstRecordedDate = stats.entries[0]?.date;
+    stats.lastRecordedDate = stats.entries[stats.entries.length - 1]?.date;
 
     // Calcular tendencia
-    if (foundStats.entries.length >= 2) {
-      const recent = foundStats.entries.slice(-3);
+    if (stats.entries.length >= 2) {
+      const recent = stats.entries.slice(-3);
       const first = recent[0].weight;
       const last = recent[recent.length - 1].weight;
       const diff = last - first;
       const threshold = 0.5;
 
       if (diff > threshold) {
-        foundStats.trend = 'up';
+        stats.trend = 'up';
       } else if (diff < -threshold) {
-        foundStats.trend = 'down';
+        stats.trend = 'down';
       } else {
-        foundStats.trend = 'stable';
+        stats.trend = 'stable';
       }
     }
 
-    return foundStats;
+    return stats;
   }
 
   /**
@@ -284,3 +286,4 @@ export class WeightStatsService {
     return { startDate, endDate };
   }
 }
+
